@@ -1,0 +1,224 @@
+<!doctype html>
+
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Slideshow</title>
+	<meta name="author" content="Giulio Mainardi">
+	<style type="text/css">
+		html {
+			background-color: #444;
+		}
+		.slideshow {
+			width: 640px;
+			height: 480px;
+			margin: 0 auto;
+			padding: 0;
+			position: relative;
+		}
+		.slideshow .screen {
+			width: 640px;
+			height: 480px;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			position: relative;
+		}
+		.slideshow .slideFilm {
+			width: 6400px;
+			height: 480px;
+			list-style: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			margin: 0;
+			padding: 0;
+		}
+		.slideshow .slideFilm li {
+			float: left;
+			width: 640px;
+			height: 480px;
+			margin: 0;
+			padding: 0;
+		}
+		.slideshow .controls .seq {
+			position: absolute;
+			width: 40px;
+			height: 40px;
+			-moz-border-radius: 40px/40px;
+			-webkit-border-radius: 40px 40px;
+			border-radius: 40px/40px;
+			background: #000;
+			line-height: 40px;
+			border: 1px solid #fff;
+			color: #fff;
+			top: 50%;
+			text-decoration: none;
+			text-align: center;
+			font-weight: bold;
+		}
+		.slideshow .controls .seq:hover {
+			background-color: #fff;
+			color: #000;
+			border-color: #000;
+		}
+		.slideshow .controls .seq.prev {
+			left: -20px;
+		}
+		.slideshow .controls .seq.next {
+			right: -20px;
+		}
+		.slideshow .controls .rnd {
+			margin: 0;
+			padding: 2px;
+			list-style: none;
+			position: absolute;
+			/*width: 500px;*/
+			height: 20px;
+			bottom: -32px; /*  height + 2*border-width + margin */
+			left: 50%;
+			border: 1px solid #ccc;
+			background-color: #000;
+		}
+		.slideshow .controls .rnd li {
+			float: left;
+			margin-right: 5px;
+		}
+	</style>
+</head>
+
+<body>
+
+<div class="slideshow">
+	<div class="screen">
+		<ol class="slideFilm">
+			<li>
+				<a href="http://www.flickr.com/photos/34772705@N08/6298806089/">
+					<img src="pics/anne-stokes.jpg">
+				</a>
+			</li>
+			<li>
+				<a href="http://www.flickr.com/photos/34772705@N08/6283489692/">
+					<img src="pics/filament-group.jpg">
+				</a>
+			</li>
+			<li>
+				<a href="http://www.flickr.com/photos/34772705@N08/6037800143/">
+					<img src="pics/carsonified-404.jpg">
+				</a>
+			</li>
+			<li>
+				<a href="http://www.flickr.com/photos/34772705@N08/6283491318/">
+					<img src="pics/kiss-live.jpg">
+				</a>
+			</li>
+		</ol>
+	</div>
+	<div class="controls">
+		<a class="seq prev" href="#">&lt;</a>
+		<a class="seq next" href="#">&gt;</a>
+		<ol class="rnd"></ol>
+	</div>
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script>
+(function() {
+
+var
+	pauseDuration = 5000,
+	slideDuration = 1000,
+	slideshow = $('.slideshow'),
+	slideFilm = slideshow.find('.slideFilm'),
+	slides = slideFilm.children(),
+	firstSlide = slides.first(),
+	lastSlide = slides.last()
+	currSlide = firstSlide,
+	hovering = false,
+	prev = slideshow.find('.prev'),
+	next = slideshow.find('.next'),
+	rnd = slideshow.find('.rnd')
+;
+
+for (var i = 0; i < slides.length; ++i)
+	rnd.append('<li><input type="radio" name="p"></li>');
+rnd.children().first().children().first().attr('checked', true);
+
+rnd.css('margin-left', - rnd.width() / 2 + 'px')
+
+slideshow.hover(
+	function() {
+		hovering = true;
+	},
+	function() {
+		hovering = false;
+	}
+);
+
+prev.on('click', function() {
+	prevSlide();
+	return false;
+});
+
+next.on('click', function() {
+	nextSlide();
+	return false;
+});
+
+rnd.on('click', 'input', function() {
+	changeSlide($(this).parent().index());
+	return false;
+});
+
+function autoPlay() {
+	if (hovering)
+		return;
+		
+	nextSlide();
+}
+
+setInterval(autoPlay, pauseDuration);
+
+function changeSlide(which) {
+	switch (which) {
+		case 'next':
+			currSlide = currSlide.next();
+			if (currSlide.length === 0)
+				currSlide = firstSlide;
+			break;
+		case 'prev':
+			currSlide = currSlide.prev();
+			if (currSlide.length === 0)
+				currSlide = lastSlide;
+			break;
+		default:
+			currSlide = $(slideFilm.children().get(which));
+	}
+	
+	slideFilm.animate({left: - currSlide.position().left}, slideDuration, function() {
+		$(rnd.children().get(currSlide.index())).children().first().attr('checked', true);
+	});
+}
+
+var 
+	nextSlide = schonfinkelize(changeSlide, 'next'),
+	prevSlide = schonfinkelize(changeSlide, 'prev')
+;
+
+function schonfinkelize(fn) {
+	var 
+		slice = Array.prototype.slice,
+		stored_args = slice.call(arguments, 1);
+	return function () {
+		var 
+			new_args = slice.call(arguments),
+			args = stored_args.concat(new_args);
+		return fn.apply(null, args);
+	};
+}
+
+})();
+</script>
+
+</body>
+</html>
